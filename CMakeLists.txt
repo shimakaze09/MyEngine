@@ -55,13 +55,13 @@ ENDIF ()
 INIT_INSTALL_PREFIX()
 
 MESSAGE(STATUS "----------")
-IF (EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/glad/glad.h"
-        AND EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/KHR/khrplatform.h"
-        AND EXISTS "${PROJECT_SOURCE_DIR}/src/_deps/glad/glad.c")
+IF (EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/detail/glad/glad.h"
+        AND EXISTS "${PROJECT_SOURCE_DIR}/src/_deps/glad/glad.c"
+        AND EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/detail/KHR/khrplatform.h")
     MESSAGE(STATUS "found glad")
 ELSE ()
     MESSAGE(FATAL_ERROR "not found glad\n"
-            "read setup.md for more detail")
+            "read README.md for more detail")
 ENDIF ()
 
 MESSAGE(STATUS "----------")
@@ -71,21 +71,18 @@ IF (TARGET glfw)
     MESSAGE(STATUS "glfw3_DIR: ${glfw3_DIR}")
 ENDIF ()
 
-MESSAGE(STATUS "----------")
-IF (EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/stb_image.h")
-    MESSAGE(STATUS "found stb_image.h")
-ELSE ()
-    MESSAGE(FATAL_ERROR "not found stb_image.h in include/_deps/\n"
-            "read README.md for more detail")
-ENDIF ()
-
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/_deps/)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/_deps/imgui)
-
 SET(MY_MYGL_GLAD TRUE)
 
 ADD_DEP(MyRTR 0.0.1)
 
 ADD_SUB_DIRS_REC(src)
 
-EXPORT_TARGETS(DIRECTORIES "include")
+SET(INIT_TAIL "
+FIND_PACKAGE(glfw3 REQUIRED)
+IF (TARGET glfw)
+    MESSAGE(STATUS \"glfw3_FOUND: \${glfw3_FOUND}\")
+    MESSAGE(STATUS \"glfw3_DIR: \${glfw3_DIR}\")
+ENDIF ()
+")
+
+EXPORT_TARGETS(DIRECTORIES "include" INIT_TAIL "${INIT_TAIL}")

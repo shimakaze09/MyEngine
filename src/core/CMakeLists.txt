@@ -3,11 +3,14 @@ GLOBAL_GROUP_SOURCES(RST SOURCES PATHS
         "${PROJECT_SOURCE_DIR}/include/MyEngine"
 )
 
+GET_TARGET_NAME(GLAD "${PROJECT_SOURCE_DIR}/src/_deps/glad")
 GET_TARGET_NAME(IMGUI "${PROJECT_SOURCE_DIR}/src/_deps/imgui")
+GET_TARGET_NAME(IMGUI_IMPL "${PROJECT_SOURCE_DIR}/src/_deps/imgui_impl")
 
 ADD_TARGET_GDR(
         MODE "LIB"
         SOURCES ${SOURCES}
         INTERFACE_INC ON
-        PUBLIC_GLIBS "My::MyRTR_core;${IMGUI}"
+        LIBS_GENERAL "glfw;${IMGUI_IMPL};${IMGUI}"
+        PUBLIC_GLIBS "My::MyRTR_core;${GLAD}"
 )

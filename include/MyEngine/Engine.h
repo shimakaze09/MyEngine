@@ -4,12 +4,34 @@
 
 #pragma once
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include "SceneMngr.h"
+#include "_deps/imgui/imgui.h"
 
 #define MY_MYGL_GLAD 1
-#include <UGL/UGL>
+#include <MyGL/MyGL>
 
-// Include glfw3.h after OpenGL definitions
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
+
+#include <functional>
+
+namespace My {
+class DeferredRenderer;
+
+class Engine {
+ public:
+  static Engine& Instance() {
+    static Engine instance;
+    return instance;
+  }
+
+  bool Init(const std::string& title);
+  void Loop(std::function<void()> func);
+  void CleanUp();
+
+ private:
+  Engine() = default;
+
+  DeferredRenderer* rtr;
+  GLFWwindow* window{nullptr};
+};
+}  // namespace My
