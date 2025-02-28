@@ -15,8 +15,13 @@
 using namespace My;
 using namespace std;
 
+namespace My::detail::dynamic_reflection {
+void ReflRegist_Rotater();
+void ReflRegist_ImGUIExample();
+}  // namespace My::detail::dynamic_reflection
+
 struct Rotater : Component {
-  static void OnRegist() { Reflection<Rotater>::Instance(); }
+  static void OnRegist() { detail::dynamic_reflection::ReflRegist_Rotater(); }
 
   void OnUpdate(Cmpt::Rotation* rot) const {
     rot->value = quatf{vecf3{1.f}, to_radian(1.f)} * rot->value;
@@ -24,12 +29,14 @@ struct Rotater : Component {
 };
 
 class ImGUIExample : Component {
+ public:
   bool show_demo_window = true;
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
- public:
-  static void OnRegist() { Reflection<ImGUIExample>::Instance(); }
+  static void OnRegist() {
+    detail::dynamic_reflection::ReflRegist_ImGUIExample();
+  }
 
   void OnUpdate() {
     Engine::Instance().AddIMGUICommand([this]() {
@@ -91,11 +98,9 @@ int main(int argn, char** args) {
     return 1;
   }
   cout << args[0] << endl << args[1] << endl;
-  Reflection<ImGUIExample>::Instance().RegistConstructor(
-      [](SObj* sobj) { return get<0>(sobj->Attach<ImGUIExample>()); });
-  Reflection<Rotater>::Instance().RegistConstructor(
-      [](SObj* sobj) { return get<0>(sobj->Attach<Rotater>()); });
+
   Engine::Instance().Init("My@2025 MyEngine - 01 myscene");
+  CmptRegister::Instance().Regist<Rotater, ImGUIExample>();
   ifstream usceneFile(args[1], ios::in | ios::ate);
   if (!usceneFile.is_open()) {
     cout << "ERROR:" << endl
@@ -127,3 +132,40 @@ int main(int argn, char** args) {
 
   return 0;
 }
+
+namespace My::detail::dynamic_reflection {
+void ReflRegist_Rotater() {
+  Reflection<Rotater>::Instance()  // name : struct ::Rotater
+      ;
+  if constexpr (std::is_base_of_v<Component, Rotater>) {
+    Reflection<Rotater>::Instance().RegistConstructor([](SObj* sobj) {
+      if constexpr (std::is_base_of_v<Component, Rotater>) {
+        if constexpr (My::detail::SObj_::IsNecessaryCmpt<Rotater>)
+          return sobj->Get<Rotater>();
+        else
+          return sobj->GetOrAttach<Rotater>();
+      };
+    });
+  }
+}
+}  // namespace My::detail::dynamic_reflection
+
+namespace My::detail::dynamic_reflection {
+void ReflRegist_ImGUIExample() {
+  Reflection<ImGUIExample>::Instance()  // name : class ::ImGUIExample
+      .Regist(&ImGUIExample::show_demo_window, "show_demo_window")  //  bool
+      .Regist(&ImGUIExample::show_another_window,
+              "show_another_window")  //  bool
+      ;
+  if constexpr (std::is_base_of_v<Component, ImGUIExample>) {
+    Reflection<ImGUIExample>::Instance().RegistConstructor([](SObj* sobj) {
+      if constexpr (std::is_base_of_v<Component, ImGUIExample>) {
+        if constexpr (My::detail::SObj_::IsNecessaryCmpt<ImGUIExample>)
+          return sobj->Get<ImGUIExample>();
+        else
+          return sobj->GetOrAttach<ImGUIExample>();
+      };
+    });
+  }
+}
+}  // namespace My::detail::dynamic_reflection

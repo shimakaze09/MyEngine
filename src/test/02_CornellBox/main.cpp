@@ -1,11 +1,11 @@
 //
-// Created by Admin on 21/02/2025.
+// Created by Admin on 28/02/2025.
 //
 
 #include <MyEngine/Engine.h>
 #include <MyEngine/SceneMngr.h>
 
-#include <MyScene/MyScene.h>
+#include <MyScene/UScene.h>
 
 #include <stdio.h>
 
@@ -14,8 +14,13 @@
 using namespace My;
 using namespace std;
 
+namespace My::detail::dynamic_reflection {
+void ReflRegist_Rotater();
+void ReflRegist_ImGUIExample();
+}  // namespace My::detail::dynamic_reflection
+
 struct Rotater : Component {
-  static void OnRegist() { Reflection<Rotater>::Instance(); }
+  static void OnRegist() { detail::dynamic_reflection::ReflRegist_Rotater(); }
 
   void OnUpdate(Cmpt::Rotation* rot) const {
     rot->value = quatf{vecf3{1.f}, to_radian(1.f)} * rot->value;
@@ -28,7 +33,9 @@ class ImGUIExample : Component {
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-  static void OnRegist() { Reflection<ImGUIExample>::Instance(); }
+  static void OnRegist() {
+    detail::dynamic_reflection::ReflRegist_ImGUIExample();
+  }
 
   void OnUpdate() {
     Engine::Instance().AddIMGUICommand([this]() {
@@ -85,85 +92,70 @@ class ImGUIExample : Component {
 };
 
 int main(int, char**) {
-  Engine::Instance().Init("My@2025 MyEngine - 00 basic");
+  Engine::Instance().Init("My@2020 UEngine - 00 basic");
   CmptRegister::Instance().Regist<Rotater, ImGUIExample>();
 
   Scene scene("scene");
 
-  auto [sobj0, camera] = scene.CreateSObj<Cmpt::Camera>("sobj0");
-  auto [sobj1, geo1, mat1] =
-      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("sobj1");
-  auto [sobj2, geo2, mat2] =
-      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("sobj2");
-  auto [sobj3, geo3, mat3, r3] =
-      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material, Rotater>("sobj3");
-  auto [sobj4, light4] = scene.CreateSObj<Cmpt::Light>("sobj4");
-  auto [sobj5, env] = scene.CreateSObj<Cmpt::Light>("sobj5");
-  auto [sobj6, light6, geo6, r6] =
-      scene.CreateSObj<Cmpt::Light, Cmpt::Geometry, Rotater>("sobj6");
-  auto [sobj7, imgui_example] = scene.CreateSObj<ImGUIExample>("sobj7");
+  auto [camera_obj, camera] = scene.CreateSObj<Cmpt::Camera>("camera_obj");
+  auto [cornellbox] = scene.CreateSObj<>("cornellbox");
+  auto [wall_left, geo_wall_left, mat_wall_left] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("wall_left", cornellbox);
+  auto [wall_right, geo_wall_right, mat_wall_right] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("wall_right",
+                                                       cornellbox);
+  auto [wall_up, geo_wall_up, mat_wall_up] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("wall_up", cornellbox);
+  auto [wall_down, geo_wall_down, mat_wall_down] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("wall_down", cornellbox);
+  auto [wall_back, geo_wall_back, mat_wall_back] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Material>("wall_back", cornellbox);
+  auto [rectlight_obj, geo_rectlight, rectlight, r] =
+      scene.CreateSObj<Cmpt::Geometry, Cmpt::Light, Rotater>("rectlight");
+  scene.CreateSObj<ImGUIExample>("imguiExample");
 
-  string albedo_path = "../data/textures/rusted_iron/albedo.png";
-  string roughness_path = "../data/textures/rusted_iron/roughness.png";
-  string metalness_path = "../data/textures/rusted_iron/metallic.png";
-  string normal_path = "../data/textures/rusted_iron/normal.png";
-  string env_path = "../data/textures/newport_loft.hdr";
-  auto albedo_texture = new Texture2D(albedo_path);
-  auto roughness_texture = new Texture2D(roughness_path);
-  auto metalness_texture = new Texture2D(metalness_path);
-  auto normals_texture = new Texture2D(normal_path);
-  auto env_texture = new Texture2D(env_path);
+  camera_obj->Get<Cmpt::Position>()->value = {0, 0, 8};
 
-  geo1->SetPrimitive(new Sphere);
-  geo2->SetPrimitive(new Square);
-  geo3->SetPrimitive(new TriMesh(TriMesh::Type::Cube));
-  auto brdf1 = new stdBRDF;
-  auto brdf2 = new stdBRDF;
-  auto brdf3 = new stdBRDF;
-  brdf1->albedo_texture = albedo_texture;
-  brdf1->roughness_texture = roughness_texture;
-  brdf1->metalness_texture = metalness_texture;
-  brdf1->normal_map = normals_texture;
-  brdf2->albedo_texture = albedo_texture;
-  brdf2->roughness_texture = roughness_texture;
-  brdf2->metalness_texture = metalness_texture;
-  brdf2->normal_map = normals_texture;
-  brdf3->albedo_texture = albedo_texture;
-  brdf3->roughness_texture = roughness_texture;
-  brdf3->metalness_texture = metalness_texture;
-  brdf3->normal_map = normals_texture;
-  mat1->SetMaterial(brdf1);
-  mat2->SetMaterial(brdf2);
-  mat3->SetMaterial(brdf3);
+  // wall
+  geo_wall_left->SetPrimitive(new Square);
+  geo_wall_right->SetPrimitive(new Square);
+  geo_wall_up->SetPrimitive(new Square);
+  geo_wall_down->SetPrimitive(new Square);
+  geo_wall_back->SetPrimitive(new Square);
 
-  sobj0->Get<Cmpt::Position>()->value = {0, 0, 8};
-  sobj1->Get<Cmpt::Position>()->value = {-4, 0, 0};
-  sobj1->Get<Cmpt::Scale>()->value = 2.f;
-  sobj2->Get<Cmpt::Rotation>()->value = {vecf3{1, 0, 0}, to_radian(45.f)};
-  sobj3->Get<Cmpt::Position>()->value = {4, 0, 0};
-  sobj3->Get<Cmpt::Scale>()->value = {1, 2, 1};
-  sobj3->Get<Cmpt::Rotation>()->value = {vecf3{1, 2, 1}.normalize(),
-                                         to_radian(45.f)};
-  camera->fov = to_radian(60.f);
-  camera->ar = 1280 / static_cast<float>(720);
+  mat_wall_left->SetMaterial(new stdBRDF{rgbf{0.8, 0.2, 0.2}});
+  mat_wall_right->SetMaterial(new stdBRDF{rgbf{0.2, 0.2, 0.8}});
+  mat_wall_up->SetMaterial(new stdBRDF{rgbf{0.8f}});
+  mat_wall_down->SetMaterial(new stdBRDF{rgbf{0.8f}});
+  mat_wall_back->SetMaterial(new stdBRDF{rgbf{0.8f}});
 
-  light4->SetLight(new PointLight{100.f, {0.9f, 0.9f, 1.f}});
-  sobj4->Get<Cmpt::Position>()->value = {0, 4, 0};
+  wall_left->Get<Cmpt::Position>()->value = {-1, 0, 0};
+  wall_left->Get<Cmpt::Rotation>()->value = {vecf3{0, 0, 1}, to_radian(-90.f)};
 
-  light6->SetLight(new AreaLight{100.f, {1, 0, 1}});
-  geo6->SetPrimitive(new Square);
-  sobj6->Get<Cmpt::Position>()->value = {0, 3, 0};
-  sobj6->Get<Cmpt::Rotation>()->value =
-      quatf{vecf3{1, 0, 0}, to_radian(180.f)} *
-      sobj6->Get<Cmpt::Rotation>()->value;
+  wall_right->Get<Cmpt::Position>()->value = {1, 0, 0};
+  wall_right->Get<Cmpt::Rotation>()->value = {vecf3{0, 0, 1}, to_radian(90.f)};
 
-  env->SetLight(new EnvLight(1.f, rgbf{1.f}, env_texture));
+  wall_up->Get<Cmpt::Position>()->value = {0, 1, 0};
+  wall_up->Get<Cmpt::Rotation>()->value = {vecf3{0, 0, 1}, to_radian(180.f)};
+
+  wall_down->Get<Cmpt::Position>()->value = {0, -1, 0};
+
+  wall_back->Get<Cmpt::Position>()->value = {0, 0, -1};
+  wall_back->Get<Cmpt::Rotation>()->value = {vecf3{1, 0, 0}, to_radian(90.f)};
+
+  cornellbox->Get<Cmpt::Scale>()->value = {2, 2, 2};
+
+  rectlight->SetLight(new AreaLight{50.f, {1, 1, 1}});
+  geo_rectlight->SetPrimitive(new Square);
+  rectlight_obj->Get<Cmpt::Scale>()->value = {0.5f, 0.5f, 0.5f};
+  rectlight_obj->Get<Cmpt::Rotation>()->value =
+      quatf{vecf3{1, 0, 0}, to_radian(180.f)};
 
   SerializerJSON serializer;
   auto rst = serializer.Serialize(&scene);
   cout << rst << endl;
 
-  SceneMngr::Instance().Active(&scene, sobj0);
+  SceneMngr::Instance().Active(&scene, camera_obj);
 
   // Main loop
   Engine::Instance().Loop();
