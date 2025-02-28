@@ -54,15 +54,11 @@ ENDIF ()
 # Set default build path prefix
 INIT_INSTALL_PREFIX()
 
-MESSAGE(STATUS "----------")
-IF (EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/detail/glad/glad.h"
-        AND EXISTS "${PROJECT_SOURCE_DIR}/src/_deps/glad/glad.c"
-        AND EXISTS "${PROJECT_SOURCE_DIR}/include/_deps/detail/KHR/khrplatform.h")
-    MESSAGE(STATUS "found glad")
-ELSE ()
-    MESSAGE(FATAL_ERROR "not found glad\n"
-            "read README.md for more detail")
-ENDIF ()
+DOWNLOAD_ZIP(
+        https://cdn.jsdelivr.net/gh/shimakaze09/MyData@main/MyEngine/imgui.zip
+        imgui.zip
+        SHA256 9E134D8DBE8FD94A292DDD313A80BA77C113CD4756B4429777169C147401E200
+)
 
 MESSAGE(STATUS "----------")
 FIND_PACKAGE(glfw3 REQUIRED)
@@ -71,9 +67,7 @@ IF (TARGET glfw)
     MESSAGE(STATUS "glfw3_DIR: ${glfw3_DIR}")
 ENDIF ()
 
-SET(MY_MYGL_GLAD TRUE)
-
-ADD_DEP(MyRTR 0.0.4)
+ADD_DEP(MyRTR 0.0.5)
 
 ADD_SUB_DIRS_REC(src)
 
