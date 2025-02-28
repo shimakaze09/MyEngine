@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20 FATAL_ERROR)
 
 # Set the project
-PROJECT(MyEngine VERSION 0.0.1 LANGUAGES CXX)
+PROJECT(MyEngine VERSION 0.0.2 LANGUAGES CXX)
 MESSAGE(STATUS "Project: ${PROJECT_NAME} ${PROJECT_VERSION}")
 
 # Add 'd' postfix for debug builds
@@ -33,22 +33,22 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 # Add CMake modules
 INCLUDE(FETCHCONTENT)
 
-MESSAGE(STATUS "Looking for: MyCMake v0.4.0")
-FIND_PACKAGE(MyCMake 0.4.0 QUIET)
+MESSAGE(STATUS "Looking for: MyCMake v0.4.1")
+FIND_PACKAGE(MyCMake 0.4.1 QUIET)
 IF (${MyCMake_FOUND})
     MESSAGE(STATUS "MyCMake v${PACKAGE_VERSION} found")
 ELSE ()
     SET(ADDRESS "https://github.com/shimakaze09/MyCMake.git")
-    MESSAGE(STATUS "MyCMake v0.4.0 not found\n"
-            "fetch from ${ADDRESS} with tag v0.4.0")
+    MESSAGE(STATUS "MyCMake v0.4.1 not found\n"
+            "fetch from ${ADDRESS} with tag v0.4.1")
     FETCHCONTENT_DECLARE(
             MyCMake
             GIT_REPOSITORY ${ADDRESS}
-            GIT_TAG "v0.4.0"
+            GIT_TAG "v0.4.1"
     )
-    message(STATUS "Building MyCMake v0.4.0")
+    message(STATUS "Building MyCMake v0.4.1")
     FETCHCONTENT_MAKEAVAILABLE(MyCMake)
-    MESSAGE(STATUS "MyCMake v0.4.0 built")
+    MESSAGE(STATUS "MyCMake v0.4.1 built")
 ENDIF ()
 
 # Set default build path prefix
@@ -73,7 +73,7 @@ ENDIF ()
 
 SET(MY_MYGL_GLAD TRUE)
 
-ADD_DEP(MyRTR 0.0.1)
+ADD_DEP(MyRTR 0.0.4)
 
 ADD_SUB_DIRS_REC(src)
 

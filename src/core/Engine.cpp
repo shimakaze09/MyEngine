@@ -14,6 +14,8 @@
 
 #include <MyScene/tool/SceneReflectionInit.h>
 
+#include <MyScene/MyScene.h>
+
 #include <MyRTR/DeferredRenderer.h>
 
 using namespace My;
@@ -119,7 +121,7 @@ bool Engine::Init(const std::string& title) {
   return true;
 }
 
-void Engine::Loop(std::function<void()> func) {
+void Engine::Loop() {
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -134,22 +136,49 @@ void Engine::Loop(std::function<void()> func) {
     ImGui::NewFrame();
 
     auto& io = ImGui::GetIO();
-    gl::Viewport({0, 0}, io.DisplaySize.x, io.DisplaySize.y);
+    gl::Viewport({0, 0}, static_cast<GLsizei>(io.DisplaySize.x),
+                 static_cast<GLsizei>(io.DisplaySize.y));
 
-    func();
+    for (auto scene : SceneMngr::Instance().toStartScenes)
+      scene->Start();
 
-    if (SceneMngr::Instance().actived_scene && io.DisplaySize[0] != 0 &&
+    if (SceneMngr::Instance().actived_scene)
+      SceneMngr::Instance().actived_scene->Update();
+    for (auto scene : SceneMngr::Instance().updatetingScenes) {
+      if (scene == SceneMngr::Instance().actived_scene)
+        continue;
+      scene->Update();
+    }
+    for (auto scene : SceneMngr::Instance().toStartScenes) {
+      if (scene == SceneMngr::Instance().actived_scene)
+        continue;
+      scene->Update();
+    }
+    for (auto scene : SceneMngr::Instance().toStopScenes)
+      scene->Stop();
+    SceneMngr::Instance().Update();
+
+    if (SceneMngr::Instance().actived_scene &&
+        SceneMngr::Instance().main_camera_sobj && io.DisplaySize[0] != 0 &&
         io.DisplaySize[1] != 0) {
       rtr->Render(SceneMngr::Instance().actived_scene,
                   SceneMngr::Instance().main_camera_sobj, io.DisplaySize[0],
                   io.DisplaySize[1]);
     }
 
+    for (const auto& imguiCommand : imguiCommands)
+      imguiCommand();
+    imguiCommands.clear();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
   }
+
+  // final stop
+  for (auto scene : SceneMngr::Instance().updatetingScenes)
+    scene->Stop();
 }
 
 void Engine::CleanUp() {
@@ -162,4 +191,9 @@ void Engine::CleanUp() {
   glfwTerminate();
 
   window = nullptr;
+}
+
+void Engine::AddIMGUICommand(const std::function<void()>& command) {
+  lock_guard<mutex> guard(imguiCommands_mutex);
+  imguiCommands.push_back(command);
 }
