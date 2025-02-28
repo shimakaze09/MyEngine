@@ -160,8 +160,9 @@ void Engine::Loop() {
         SceneMngr::Instance().main_camera_sobj && io.DisplaySize[0] != 0 &&
         io.DisplaySize[1] != 0) {
       rtr->Render(SceneMngr::Instance().actived_scene,
-                  SceneMngr::Instance().main_camera_sobj, io.DisplaySize[0],
-                  io.DisplaySize[1]);
+                  SceneMngr::Instance().main_camera_sobj,
+                  static_cast<size_t>(io.DisplaySize[0]),
+                  static_cast<size_t>(io.DisplaySize[1]));
     }
 
     for (const auto& imguiCommand : imguiCommands)
