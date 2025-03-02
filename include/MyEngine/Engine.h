@@ -47,7 +47,7 @@ class Engine {
   void AddIMGUICommand(const std::function<void()>& command);
 
  private:
-  Engine() = default;
+  Engine();
 
   std::vector<std::function<void()>> imguiCommands;
   std::mutex imguiCommands_mutex;
