@@ -1,7 +1,9 @@
-GLOBAL_GROUP_SOURCES(RST SOURCES PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        "${PROJECT_SOURCE_DIR}/include/MyEngine"
-)
-
 GET_TARGET_NAME(CORE "${PROJECT_SOURCE_DIR}/src/core")
-ADD_TARGET(MODE "EXE" SOURCES ${SOURCES} TEST ON LIBS "My::${CORE}")
+ADD_TARGET(
+        TEST
+        MODE EXE
+        SOURCE
+        "${PROJECT_SOURCE_DIR}/include/MyEngine"
+        LIB
+        ${CORE}
+)

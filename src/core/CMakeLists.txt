@@ -1,15 +1,16 @@
-GLOBAL_GROUP_SOURCES(RST SOURCES PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        "${PROJECT_SOURCE_DIR}/include/MyEngine"
-)
-
 GET_TARGET_NAME(IMGUI "${PROJECT_SOURCE_DIR}/src/_deps/imgui")
 GET_TARGET_NAME(IMGUI_IMPL "${PROJECT_SOURCE_DIR}/src/_deps/imgui_impl")
 
-ADD_TARGET_GDR(
-        MODE "LIB"
-        SOURCES ${SOURCES}
-        INTERFACE_INC ON
-        LIBS_GENERAL "glfw;${IMGUI_IMPL};${IMGUI}"
-        PUBLIC_GLIBS My::MyRTR_core
+ADD_TARGET(
+        MODE STATIC
+        SOURCE
+        "${PROJECT_SOURCE_DIR}/include/MyEngine"
+        LIB
+        glfw
+        ${imgui}
+        My::MyRTR_core
+        LIB_PRIVATE
+        ${imgui_impl}
+        INC
+        include
 )

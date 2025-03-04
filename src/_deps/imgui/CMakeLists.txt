@@ -1,9 +1,10 @@
-GLOBAL_GROUP_SOURCES(RST SOURCES PATHS
-        ${CMAKE_CURRENT_SOURCE_DIR}
+GET_TARGET_NAME(CORE "${PROJECT_SOURCE_DIR}/src/core")
+ADD_TARGET(
+        MODE STATIC
+        SOURCE
         "${PROJECT_SOURCE_DIR}/include/_deps/imgui"
-)
-
-ADD_TARGET_GDR(MODE "LIB"
-        SOURCES ${SOURCES}
-        INC_DIRS "_deps/imgui"
+        INC
+        "include/_deps/imgui"
+        LIB
+        ${CORE}
 )
